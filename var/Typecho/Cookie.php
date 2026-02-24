@@ -17,7 +17,7 @@ class Cookie
      * @var string
      * @access private
      */
-    private static string $prefix = '';
+    private static $prefix = '';
 
     /**
      * 路径
@@ -25,25 +25,7 @@ class Cookie
      * @var string
      * @access private
      */
-    private static string $path = '/';
-
-    /**
-     * @var string
-     * @access private
-     */
-    private static string $domain = '';
-
-    /**
-     * @var bool
-     * @access private
-     */
-    private static bool $secure = false;
-
-    /**
-     * @var bool
-     * @access private
-     */
-    private static bool $httponly = false;
+    private static $path = '/';
 
     /**
      * 获取前缀
@@ -69,7 +51,6 @@ class Cookie
         self::$prefix = md5($url);
         $parsed = parse_url($url);
 
-        self::$domain = $parsed['host'];
         /** 在路径后面强制加上斜杠 */
         self::$path = empty($parsed['path']) ? '/' : Common::url(null, $parsed['path']);
     }
@@ -83,37 +64,6 @@ class Cookie
     public static function getPath(): string
     {
         return self::$path;
-    }
-
-    /**
-     * @access public
-     * @return string
-     */
-    public static function getDomain(): string
-    {
-        return self::$domain;
-    }
-
-    /**
-     * @access public
-     * @return bool
-     */
-    public static function getSecure(): bool
-    {
-        return self::$secure ?: false;
-    }
-
-    /**
-     * 设置额外的选项
-     *
-     * @param array $options
-     * @return void
-     */
-    public static function setOptions(array $options)
-    {
-        self::$domain = $options['domain'] ?: self::$domain;
-        self::$secure = !!$options['secure'];
-        self::$httponly = !!$options['httponly'];
     }
 
     /**
@@ -141,15 +91,7 @@ class Cookie
     {
         $key = self::$prefix . $key;
         $_COOKIE[$key] = $value;
-        Response::getInstance()->setCookie(
-            $key,
-            $value,
-            $expire,
-            self::$path,
-            self::$domain,
-            self::$secure,
-            self::$httponly
-        );
+        Response::getInstance()->setCookie($key, $value, $expire, self::$path);
     }
 
     /**
@@ -164,7 +106,8 @@ class Cookie
             return;
         }
 
-        Response::getInstance()->setCookie($key, '', -1, self::$path, self::$domain, self::$secure, self::$httponly);
+        Response::getInstance()->setCookie($key, '', -1, self::$path);
         unset($_COOKIE[$key]);
     }
 }
+

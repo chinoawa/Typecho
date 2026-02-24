@@ -5,7 +5,7 @@ include 'menu.php';
 
 $stat = \Widget\Stat::alloc();
 ?>
-<main class="main">
+<div class="main">
     <div class="container typecho-dashboard">
         <?php include 'page-title.php'; ?>
         <div class="row typecho-page-main">
@@ -14,7 +14,7 @@ $stat = \Widget\Stat::alloc();
                         $stat->myPublishedPostsNum, $stat->myPublishedCommentsNum, $stat->categoriesNum); ?>
                     <br><?php _e('点击下面的链接快速开始:'); ?></p>
 
-                <ul id="start-link">
+                <ul id="start-link" class="clearfix">
                     <?php if ($user->pass('contributor', true)): ?>
                         <li><a href="<?php $options->adminUrl('write-post.php'); ?>"><?php _e('撰写新文章'); ?></a></li>
                         <?php if ($user->pass('editor', true) && 'on' == $request->get('__typecho_all_comments') && $stat->waitingCommentsNum > 0): ?>
@@ -102,7 +102,7 @@ $stat = \Widget\Stat::alloc();
             </div>
         </div>
     </div>
-</main>
+</div>
 
 <?php
 include 'copyright.php';

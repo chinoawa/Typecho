@@ -6,7 +6,7 @@ include 'menu.php';
 \Widget\Metas\Tag\Admin::alloc()->to($tags);
 ?>
 
-<main class="main">
+<div class="main">
     <div class="body container">
         <?php include 'page-title.php'; ?>
         <div class="row typecho-page-main manage-metas">
@@ -14,7 +14,7 @@ include 'menu.php';
             <div class="col-mb-12 col-tb-8" role="main">
 
                 <form method="post" name="manage_tags" class="operate-form">
-                    <div class="typecho-list-operate">
+                    <div class="typecho-list-operate clearfix">
                         <div class="operate">
                             <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox"
                                                                                    class="typecho-table-select-all"/></label>
@@ -39,8 +39,8 @@ include 'menu.php';
                         </div>
                     </div>
 
-                    <?php if ($tags->have()): ?>
-                        <ul class="typecho-list-notable tag-list">
+                    <ul class="typecho-list-notable tag-list clearfix">
+                        <?php if ($tags->have()): ?>
                             <?php while ($tags->next()): ?>
                                 <li class="size-<?php $tags->split(5, 10, 20, 30); ?>" id="<?php $tags->theId(); ?>">
                                     <input type="checkbox" value="<?php $tags->mid(); ?>" name="mid[]"/>
@@ -51,12 +51,10 @@ include 'menu.php';
                                             class="i-edit"></i></a>
                                 </li>
                             <?php endwhile; ?>
-                        </ul>
-                    <?php else: ?>
-                        <ul class="tag-list">
-                            <li class="none"><?php _e('没有任何标签'); ?></li>
-                        </ul>
-                    <?php endif; ?>
+                        <?php else: ?>
+                            <h6 class="typecho-list-table-title"><?php _e('没有任何标签'); ?></h6>
+                        <?php endif; ?>
+                    </ul>
                     <input type="hidden" name="do" value="delete"/>
                 </form>
 
@@ -66,7 +64,7 @@ include 'menu.php';
             </div>
         </div>
     </div>
-</main>
+</div>
 
 <?php
 include 'copyright.php';

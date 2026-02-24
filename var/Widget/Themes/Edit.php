@@ -36,8 +36,7 @@ class Edit extends Options implements ActionInterface
         $theme = trim($theme, './');
         if (is_dir($this->options->themeFile($theme))) {
             /** 删除原外观设置信息 */
-            $oldTheme = $this->options->missingTheme ?: $this->options->theme;
-            $this->delete($this->db->sql()->where('name = ?', 'theme:' . $oldTheme));
+            $this->delete($this->db->sql()->where('name = ?', 'theme:' . $this->options->theme));
 
             $this->update(['value' => $theme], $this->db->sql()->where('name = ?', 'theme'));
 
@@ -45,8 +44,6 @@ class Edit extends Options implements ActionInterface
             if (0 === strpos($this->options->frontPage, 'file:')) {
                 $this->update(['value' => 'recent'], $this->db->sql()->where('name = ?', 'frontPage'));
             }
-
-            $this->options->themeUrl = $this->options->themeUrl(null, $theme);
 
             $configFile = $this->options->themeFile($theme, 'functions.php');
 
@@ -61,7 +58,7 @@ class Edit extends Options implements ActionInterface
                     if ($options && !$this->configHandle($options, true)) {
                         $this->insert([
                             'name'  => 'theme:' . $theme,
-                            'value' => json_encode($options),
+                            'value' => serialize($options),
                             'user'  => 0
                         ]);
                     }
@@ -100,16 +97,16 @@ class Edit extends Options implements ActionInterface
      * @param string $file 文件名
      * @throws Exception
      */
-    public function editThemeFile(string $theme, string $file)
+    public function editThemeFile($theme, $file)
     {
         $path = $this->options->themeFile($theme, $file);
 
         if (
-            file_exists($path) && is_writable($path)
+            file_exists($path) && is_writeable($path)
             && (!defined('__TYPECHO_THEME_WRITEABLE__') || __TYPECHO_THEME_WRITEABLE__)
         ) {
             $handle = fopen($path, 'wb');
-            if ($handle && fwrite($handle, $this->request->get('content'))) {
+            if ($handle && fwrite($handle, $this->request->content)) {
                 fclose($handle);
                 Notice::alloc()->set(_t("文件 %s 的更改已经保存", $file), 'success');
             } else {
@@ -133,7 +130,7 @@ class Edit extends Options implements ActionInterface
         $form = Config::alloc()->config();
 
         /** 验证表单 */
-        if (!Config::isExists($theme) || $form->validate()) {
+        if ($form->validate()) {
             $this->response->goBack();
         }
 
@@ -142,13 +139,13 @@ class Edit extends Options implements ActionInterface
         if (!$this->configHandle($settings, false)) {
             if ($this->options->__get('theme:' . $theme)) {
                 $this->update(
-                    ['value' => json_encode($settings)],
+                    ['value' => serialize($settings)],
                     $this->db->sql()->where('name = ?', 'theme:' . $theme)
                 );
             } else {
                 $this->insert([
                     'name'  => 'theme:' . $theme,
-                    'value' => json_encode($settings),
+                    'value' => serialize($settings),
                     'user'  => 0
                 ]);
             }
@@ -174,10 +171,10 @@ class Edit extends Options implements ActionInterface
         /** 需要管理员权限 */
         $this->user->pass('administrator');
         $this->security->protect();
-        $this->on($this->request->is('change'))->changeTheme($this->request->filter('slug')->get('change'));
+        $this->on($this->request->is('change'))->changeTheme($this->request->filter('slug')->change);
         $this->on($this->request->is('edit&theme'))
-            ->editThemeFile($this->request->filter('slug')->get('theme'), $this->request->get('edit'));
-        $this->on($this->request->is('config'))->config($this->request->filter('slug')->get('config'));
+            ->editThemeFile($this->request->filter('slug')->theme, $this->request->edit);
+        $this->on($this->request->is('config'))->config($this->options->theme);
         $this->response->redirect($this->options->adminUrl);
     }
 }

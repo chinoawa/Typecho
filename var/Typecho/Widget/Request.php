@@ -19,8 +19,6 @@ class Request
     private const FILTERS = [
         'int'     => 'intval',
         'integer' => 'intval',
-        'encode'  => 'urlencode',
-        'html'    => 'htmlspecialchars',
         'search'  => ['\Typecho\Common', 'filterSearchQuery'],
         'xss'     => ['\Typecho\Common', 'removeXSS'],
         'url'     => ['\Typecho\Common', 'safeUrl'],
@@ -33,17 +31,17 @@ class Request
      * @access private
      * @var array
      */
-    private array $filter = [];
+    private $filter = [];
 
     /**
      * @var HttpRequest
      */
-    private HttpRequest $request;
+    private $request;
 
     /**
      * @var Config
      */
-    private Config $params;
+    private $params;
 
     /**
      * @param HttpRequest $request
@@ -85,7 +83,7 @@ class Request
     }
 
     /**
-     * Add filter to request
+     * 设置过滤器
      *
      * @param string|callable ...$filters
      * @return $this
@@ -93,10 +91,8 @@ class Request
     public function filter(...$filters): Request
     {
         foreach ($filters as $filter) {
-            $this->filter[] = $this->wrapFilter(
-                is_string($filter) && isset(self::FILTERS[$filter])
-                ? self::FILTERS[$filter] : $filter
-            );
+            $this->filter[] = is_string($filter) && isset(self::FILTERS[$filter])
+                ? self::FILTERS[$filter] : $filter;
         }
 
         return $this;
@@ -105,7 +101,6 @@ class Request
     /**
      * 获取实际传递参数(magic)
      *
-     * @deprecated ^1.3.0
      * @param string $key 指定参数
      * @return mixed
      */
@@ -117,7 +112,6 @@ class Request
     /**
      * 判断参数是否存在
      *
-     * @deprecated ^1.3.0
      * @param string $key 指定参数
      * @return boolean
      */
@@ -154,19 +148,6 @@ class Request
     public function from(...$params): array
     {
         return $this->applyFilter(call_user_func_array([$this->request->proxy($this->params), 'from'], $params));
-    }
-
-    /**
-     * 判断输入是否满足要求
-     *
-     * @param mixed $query 条件
-     * @return boolean
-     */
-    public function is($query): bool
-    {
-        $result = $this->request->proxy($this->params)->is($query);
-        $this->request->endProxy();
-        return $result;
     }
 
     /**
@@ -229,23 +210,13 @@ class Request
     }
 
     /**
-     * 获取请求的内容类型
-     *
-     * @return string|null
-     */
-    public function getContentType(): ?string
-    {
-        return $this->request->getContentType();
-    }
-
-    /**
      * 获取环境变量
      *
      * @param string $name 获取环境变量名
      * @param string|null $default
      * @return string|null
      */
-    public function getServer(string $name, ?string $default = null): ?string
+    public function getServer(string $name, string $default = null): ?string
     {
         return $this->request->getServer($name, $default);
     }
@@ -343,13 +314,14 @@ class Request
     }
 
     /**
-     * 判断是否为json
+     * 判断输入是否满足要求
      *
+     * @param mixed $query 条件
      * @return boolean
      */
-    public function isJson(): bool
+    public function is($query): bool
     {
-        return $this->request->isJson();
+        return $this->request->is($query);
     }
 
     /**
@@ -370,21 +342,6 @@ class Request
             $this->filter = [];
         }
 
-        $this->request->endProxy();
         return $value;
-    }
-
-    /**
-     * Wrap a filter to make sure it always receives a string.
-     *
-     * @param callable $filter
-     *
-     * @return callable
-     */
-    private function wrapFilter(callable $filter): callable
-    {
-        return function ($value) use ($filter) {
-            return call_user_func($filter, $value ?? '');
-        };
     }
 }

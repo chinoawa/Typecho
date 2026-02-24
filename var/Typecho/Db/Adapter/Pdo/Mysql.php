@@ -51,36 +51,13 @@ class Mysql extends Pdo
      */
     public function init(Config $config): \PDO
     {
-        $options = [];
-        if (!empty($config->sslCa)) {
-            $options[\PDO::MYSQL_ATTR_SSL_CA] = $config->sslCa;
-
-            if (isset($config->sslVerify)) {
-                // FIXME: https://github.com/php/php-src/issues/8577
-                $options[\PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = $config->sslVerify;
-            }
-        }
-
-        $dsn = !empty($config->dsn)
-            ? $config->dsn
-            : (strpos($config->host, '/') !== false
-                ? "mysql:dbname={$config->database};unix_socket={$config->host}"
-                : "mysql:dbname={$config->database};host={$config->host};port={$config->port}");
-
         $pdo = new \PDO(
-            $dsn,
+            !empty($config->dsn)
+                ? $config->dsn : "mysql:dbname={$config->database};host={$config->host};port={$config->port}",
             $config->user,
-            $config->password,
-            $options
+            $config->password
         );
-
-        if (class_exists('\Pdo\Mysql')) {
-            // 新版本写法
-            $pdo->setAttribute(\Pdo\Mysql::ATTR_USE_BUFFERED_QUERY, true);
-        } else {
-            // 兼容旧版本
-            $pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
-        }
+        $pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
 
         if ($config->charset) {
             $pdo->exec("SET NAMES '{$config->charset}'");

@@ -27,7 +27,7 @@ class Service extends BaseOptions implements ActionInterface
      *
      * @var array
      */
-    public array $asyncRequests = [];
+    public $asyncRequests = [];
 
     /**
      * 发送pingback实现
@@ -37,19 +37,16 @@ class Service extends BaseOptions implements ActionInterface
     public function sendPingHandle()
     {
         /** 验证权限 */
-        $data = $this->request->get('@json');
-        $token = $data['token'] ?? '';
-        $permalink = $data['permalink'] ?? '';
-        $title = $data['title'] ?? '';
-        $excerpt = $data['excerpt'] ?? '';
+        $token = $this->request->get('token');
+        $permalink = $this->request->get('permalink');
+        $title = $this->request->get('title');
+        $excerpt = $this->request->get('excerpt');
 
         $response = ['trackback' => [], 'pingback' => []];
 
         if (!Common::timeTokenValidate($token, $this->options->secret, 3) || empty($permalink)) {
             throw new Exception(_t('禁止访问'), 403);
         }
-
-        $this->response->throwFinish();
 
         /** 忽略超时 */
         if (function_exists('ignore_user_abort')) {
@@ -60,8 +57,8 @@ class Service extends BaseOptions implements ActionInterface
             set_time_limit(30);
         }
 
-        if (!empty($data['pingback'])) {
-            $links = $data['pingback'];
+        if (!empty($this->request->pingback)) {
+            $links = $this->request->getArray('pingback');
             $permalinkPart = parse_url($permalink);
 
             /** 发送pingback */
@@ -77,7 +74,7 @@ class Service extends BaseOptions implements ActionInterface
                     $url = Common::buildUrl($urlPart);
                 }
 
-                if ($permalinkPart['host'] == $urlPart['host']) {
+                if ($permalinkPart['host'] == $urlPart['host'] && $permalinkPart['path'] == $urlPart['path']) {
                     continue;
                 }
 
@@ -117,8 +114,8 @@ class Service extends BaseOptions implements ActionInterface
         }
 
         /** 发送trackback */
-        if (!empty($data['trackback'])) {
-            $links = $data['trackback'];
+        if (!empty($this->request->trackback)) {
+            $links = $this->request->getArray('trackback');
 
             foreach ($links as $url) {
                 $client = Client::get();
@@ -182,8 +179,9 @@ class Service extends BaseOptions implements ActionInterface
 
                 $client->setHeader('User-Agent', $this->options->generator)
                     ->setTimeout(2)
-                    ->setJson($input)
-                    ->send($this->getServiceUrl('ping'));
+                    ->setData($input)
+                    ->setMethod(Client::METHOD_POST)
+                    ->send($this->getServiceUrl());
             } catch (Client\Exception $e) {
                 return;
             }
@@ -193,10 +191,9 @@ class Service extends BaseOptions implements ActionInterface
     /**
      * 获取真实的 URL
      *
-     * @param string $do 动作名
      * @return string
      */
-    private function getServiceUrl(string $do): string
+    private function getServiceUrl(): string
     {
         $url = Common::url('/action/service', $this->options->index);
 
@@ -217,7 +214,7 @@ class Service extends BaseOptions implements ActionInterface
             $url = Common::buildUrl($parts);
         }
 
-        return $url . '?do=' . $do;
+        return $url;
     }
 
     /**
@@ -226,7 +223,7 @@ class Service extends BaseOptions implements ActionInterface
      * @param $method
      * @param mixed $params
      */
-    public function requestService($method, ...$params)
+    public function requestService($method, $params = null)
     {
         static $called;
 
@@ -236,11 +233,13 @@ class Service extends BaseOptions implements ActionInterface
                     try {
                         $client->setHeader('User-Agent', $this->options->generator)
                             ->setTimeout(2)
-                            ->setJson([
-                                'requests' => $this->asyncRequests,
+                            ->setData([
+                                'do' => 'async',
+                                'requests' => json_encode($this->asyncRequests),
                                 'token' => Common::timeToken($this->options->secret)
                             ])
-                            ->send($this->getServiceUrl('async'));
+                            ->setMethod(Client::METHOD_POST)
+                            ->send($this->getServiceUrl());
                     } catch (Client\Exception $e) {
                         return;
                     }
@@ -261,14 +260,11 @@ class Service extends BaseOptions implements ActionInterface
     public function asyncHandle()
     {
         /** 验证权限 */
-        $data = $this->request->get('@json');
-        $token = $data['token'] ?? '';
+        $token = $this->request->token;
 
         if (!Common::timeTokenValidate($token, $this->options->secret, 3)) {
             throw new Exception(_t('禁止访问'), 403);
         }
-
-        $this->response->throwFinish();
 
         /** 忽略超时 */
         if (function_exists('ignore_user_abort')) {
@@ -279,13 +275,13 @@ class Service extends BaseOptions implements ActionInterface
             set_time_limit(30);
         }
 
-        $requests = $data['requests'] ?? null;
+        $requests = json_decode($this->request->requests, true);
         $plugin = self::pluginHandle();
 
         if (!empty($requests)) {
             foreach ($requests as $request) {
                 [$method, $params] = $request;
-                $plugin->call($method, ... $params);
+                $plugin->{$method}($params);
             }
         }
     }

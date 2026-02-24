@@ -38,14 +38,14 @@ class Rows extends Widget
                 $themeFile = $theme . '/index.php';
                 if (file_exists($themeFile)) {
                     $info = Plugin::parseInfo($themeFile);
-                    $info['name'] = $this->getTheme($theme);
+                    $info['name'] = $this->getTheme($theme, $key);
 
                     if ($info['activated'] = ($options->theme == $info['name'])) {
                         $activated = $key;
                     }
 
                     $screen = array_filter(glob($theme . '/*'), function ($path) {
-                        return preg_match("/screenshot\.(jpg|png|gif|bmp|jpeg|webp|avif)$/i", $path);
+                        return preg_match("/screenshot\.(jpg|png|gif|bmp|jpeg)$/i", $path);
                     });
 
                     if ($screen) {
@@ -77,9 +77,10 @@ class Rows extends Widget
      * get theme
      *
      * @param string $theme
+     * @param mixed $index
      * @return string
      */
-    protected function getTheme(string $theme): string
+    protected function getTheme(string $theme, $index): string
     {
         return basename($theme);
     }

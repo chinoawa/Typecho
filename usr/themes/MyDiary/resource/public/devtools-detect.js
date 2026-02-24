@@ -1,7 +1,0 @@
-/*!
-devtools-detect
-https://github.com/sindresorhus/devtools-detect
-By Sindre Sorhus
-MIT License
-*/
-var module$devtools_detect={},devtools$$module$devtools_detect={isOpen:!1,orientation:void 0},threshold$$module$devtools_detect=170,emitEvent$$module$devtools_detect=function(a,b){globalThis.dispatchEvent(new globalThis.CustomEvent("devtoolschange",{detail:{isOpen:a,orientation:b}}))},main$$module$devtools_detect=function(a){a=void 0===a?{}:a;a=void 0===a.emitEvents?!0:a.emitEvents;var b=globalThis.outerWidth-globalThis.innerWidth>threshold$$module$devtools_detect,d=globalThis.outerHeight-globalThis.innerHeight>threshold$$module$devtools_detect,c=b?"vertical":"horizontal";d&&b||!(globalThis.Firebug&&globalThis.Firebug.chrome&&globalThis.Firebug.chrome.isInitialized||b||d)?(devtools$$module$devtools_detect.isOpen&&a&&emitEvent$$module$devtools_detect(!1,void 0),devtools$$module$devtools_detect.isOpen=!1,devtools$$module$devtools_detect.orientation=void 0):(devtools$$module$devtools_detect.isOpen&&devtools$$module$devtools_detect.orientation===c||!a||emitEvent$$module$devtools_detect(!0,c),devtools$$module$devtools_detect.isOpen=!0,devtools$$module$devtools_detect.orientation=c)};main$$module$devtools_detect({emitEvents:!1});setInterval(main$$module$devtools_detect,500);var $jscompDefaultExport$$module$devtools_detect=devtools$$module$devtools_detect;module$devtools_detect["default"]=$jscompDefaultExport$$module$devtools_detect;

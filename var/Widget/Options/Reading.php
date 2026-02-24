@@ -44,17 +44,17 @@ class Reading extends Permalink
         );
 
         if (
-            'page' == $settings['frontPage'] && $this->request->is('frontPagePage') &&
+            'page' == $settings['frontPage'] && isset($this->request->frontPagePage) &&
             $this->db->fetchRow($this->db->select('cid')
                 ->from('table.contents')->where('type = ?', 'page')
                 ->where('status = ?', 'publish')->where('created < ?', $this->options->time)
-                ->where('cid = ?', $pageId = intval($this->request->get('frontPagePage'))))
+                ->where('cid = ?', $pageId = intval($this->request->frontPagePage)))
         ) {
             $settings['frontPage'] = 'page:' . $pageId;
         } elseif (
-            'file' == $settings['frontPage'] && $this->request->is('frontPageFile') &&
+            'file' == $settings['frontPage'] && isset($this->request->frontPageFile) &&
             file_exists(__TYPECHO_ROOT_DIR__ . '/' . __TYPECHO_THEME_DIR__ . '/' . $this->options->theme . '/' .
-                ($file = trim($this->request->get('frontPageFile'), " ./\\")))
+                ($file = trim($this->request->frontPageFile, " ./\\")))
         ) {
             $settings['frontPage'] = 'file:' . $file;
         } else {
@@ -65,7 +65,7 @@ class Reading extends Permalink
             $settings['frontArchive'] = empty($settings['frontArchive']) ? 0 : 1;
             if ($settings['frontArchive']) {
                 $routingTable = $this->options->routingTable;
-                $routingTable['archive']['url'] = '/' . ltrim($this->encodeRule($this->request->get('archivePattern')), '/');
+                $routingTable['archive']['url'] = '/' . ltrim($this->encodeRule($this->request->archivePattern), '/');
                 $routingTable['archive_page']['url'] = rtrim($routingTable['archive']['url'], '/')
                     . '/page/[page:digital]/';
 
@@ -73,7 +73,7 @@ class Reading extends Permalink
                     unset($routingTable[0]);
                 }
 
-                $settings['routingTable'] = json_encode($routingTable);
+                $settings['routingTable'] = serialize($routingTable);
             }
         } else {
             $settings['frontArchive'] = 0;
@@ -105,7 +105,7 @@ class Reading extends Permalink
             _t('文章日期格式'),
             _t('此格式用于指定显示在文章归档中的日期默认显示格式.') . '<br />'
             . _t('在某些主题中这个格式可能不会生效, 因为主题作者可以自定义日期格式.') . '<br />'
-            . _t('请参考 <a href="https://www.php.net/manual/zh/function.date.php">PHP 日期格式写法</a>.')
+            . _t('请参考 <a href="http://www.php.net/manual/zh/function.date.php">PHP 日期格式写法</a>.')
         );
         $postDateFormat->input->setAttribute('class', 'w-40 mono');
         $form->addInput($postDateFormat->addRule('xssCheck', _t('请不要在日期格式中使用特殊字符')));
@@ -195,7 +195,7 @@ class Reading extends Permalink
         $form->addInput($frontPage->multiMode());
 
         /** 文章列表数目 */
-        $postsListSize = new Form\Element\Number(
+        $postsListSize = new Form\Element\Text(
             'postsListSize',
             null,
             $this->options->postsListSize,
@@ -206,7 +206,7 @@ class Reading extends Permalink
         $form->addInput($postsListSize->addRule('isInteger', _t('请填入一个数字')));
 
         /** 每页文章数目 */
-        $pageSize = new Form\Element\Number(
+        $pageSize = new Form\Element\Text(
             'pageSize',
             null,
             $this->options->pageSize,

@@ -13,19 +13,19 @@ include 'header.php';
 ?>
 <div class="typecho-login-wrap">
     <div class="typecho-login">
-        <h1><a href="https://typecho.org" class="i-logo">Typecho</a></h1>
+        <h1><a href="http://typecho.org" class="i-logo">Typecho</a></h1>
         <form action="<?php $options->loginAction(); ?>" method="post" name="login" role="form">
             <p>
-                <label for="name" class="sr-only"><?php _e('用户名或邮箱'); ?></label>
-                <input type="text" id="name" name="name" value="<?php echo $rememberName; ?>" placeholder="<?php _e('用户名或邮箱'); ?>" class="text-l w-100" autofocus />
+                <label for="name" class="sr-only"><?php _e('用户名'); ?></label>
+                <input type="text" id="name" name="name" value="<?php echo $rememberName; ?>" placeholder="<?php _e('用户名'); ?>" class="text-l w-100" autofocus />
             </p>
             <p>
                 <label for="password" class="sr-only"><?php _e('密码'); ?></label>
-                <input type="password" id="password" name="password" class="text-l w-100" placeholder="<?php _e('密码'); ?>" required />
+                <input type="password" id="password" name="password" class="text-l w-100" placeholder="<?php _e('密码'); ?>" />
             </p>
             <p class="submit">
                 <button type="submit" class="btn btn-l w-100 primary"><?php _e('登录'); ?></button>
-                <input type="hidden" name="referer" value="<?php echo $request->filter('html')->get('referer'); ?>" />
+                <input type="hidden" name="referer" value="<?php echo htmlspecialchars($request->get('referer') ?? ''); ?>" />
             </p>
             <p>
                 <label for="remember">

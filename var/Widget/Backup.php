@@ -25,7 +25,7 @@ class Backup extends BaseOptions implements ActionInterface
     /**
      * @var array
      */
-    private array $types = [
+    private $types = [
         'contents'      => 1,
         'comments'      => 2,
         'metas'         => 3,
@@ -37,7 +37,7 @@ class Backup extends BaseOptions implements ActionInterface
     /**
      * @var array
      */
-    private array $fields = [
+    private $fields = [
         'contents'      => [
             'cid', 'title', 'slug', 'created', 'modified', 'text', 'order', 'authorId',
             'template', 'type', 'status', 'password', 'commentsNum', 'allowComment', 'allowPing', 'allowFeed', 'parent'
@@ -62,17 +62,17 @@ class Backup extends BaseOptions implements ActionInterface
     /**
      * @var array
      */
-    private array $lastIds = [];
+    private $lastIds = [];
 
     /**
      * @var array
      */
-    private array $cleared = [];
+    private $cleared = [];
 
     /**
      * @var bool
      */
-    private bool $login = false;
+    private $login = false;
 
     /**
      * 列出已有备份文件
@@ -126,7 +126,7 @@ class Backup extends BaseOptions implements ActionInterface
             } while (count($rows) == 20);
         }
 
-        self::pluginHandle()->call('export', $fp);
+        self::pluginHandle()->export($fp);
         fwrite($fp, $header);
         fclose($fp);
 
@@ -189,12 +189,7 @@ class Backup extends BaseOptions implements ActionInterface
         if (!empty($_FILES)) {
             $file = array_pop($_FILES);
 
-            if(UPLOAD_ERR_NO_FILE == $file['error']) {
-                Notice::alloc()->set(_t('没有选择任何备份文件'), 'error');
-                $this->response->goBack();
-            }
-
-            if (UPLOAD_ERR_OK == $file['error'] && is_uploaded_file($file['tmp_name'])) {
+            if (0 == $file['error'] && is_uploaded_file($file['tmp_name'])) {
                 $path = $file['tmp_name'];
             } else {
                 Notice::alloc()->set(_t('备份文件上传失败'), 'error');
@@ -275,7 +270,7 @@ class Backup extends BaseOptions implements ActionInterface
         }
 
         // 针对PGSQL重置计数
-        if (false !== strpos(strtolower($this->db->getAdapterName()), 'pgsql')) {
+        if (false !== strpos($this->db->getVersion(), 'pgsql')) {
             foreach ($this->lastIds as $table => $id) {
                 $seq = $this->db->getPrefix() . $table . '_seq';
                 $this->db->query('ALTER SEQUENCE ' . $seq . ' RESTART WITH ' . ($id + 1));

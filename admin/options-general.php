@@ -4,7 +4,7 @@ include 'header.php';
 include 'menu.php';
 ?>
 
-<main class="main">
+<div class="main">
     <div class="body container">
         <?php include 'page-title.php'; ?>
         <div class="row typecho-page-main" role="form">
@@ -13,7 +13,7 @@ include 'menu.php';
             </div>
         </div>
     </div>
-</main>
+</div>
 
 <?php
 include 'copyright.php';

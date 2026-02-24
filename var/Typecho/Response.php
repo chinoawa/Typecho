@@ -70,49 +70,49 @@ class Response
      * @access private
      * @var Response
      */
-    private static Response $instance;
+    private static $instance;
 
     /**
      * 字符编码
      *
      * @var string
      */
-    private string $charset = 'UTF-8';
+    private $charset = 'UTF-8';
 
     /**
      * @var string
      */
-    private string $contentType = 'text/html';
+    private $contentType = 'text/html';
 
     /**
      * @var callable[]
      */
-    private array $responders = [];
+    private $responders = [];
 
     /**
      * @var array
      */
-    private array $cookies = [];
+    private $cookies = [];
 
     /**
      * @var array
      */
-    private array $headers = [];
+    private $headers = [];
 
     /**
      * @var int
      */
-    private int $status = 200;
+    private $status = 200;
 
     /**
      * @var bool
      */
-    private bool $enableAutoSendHeaders = true;
+    private $enableAutoSendHeaders = true;
 
     /**
      * @var bool
      */
-    private bool $sandbox = false;
+    private $sandbox = false;
 
     /**
      * init responder
@@ -194,13 +194,13 @@ class Response
         // set header
         foreach ($this->headers as $name => $value) {
             if (!in_array(strtolower($name), $sentHeaders)) {
-                header($name . ': ' . $value);
+                header($name . ': ' . $value, true);
             }
         }
 
         // set cookie
         foreach ($this->cookies as $cookie) {
-            [$key, $value, $timeout, $path, $domain, $secure, $httponly] = $cookie;
+            [$key, $value, $timeout, $path, $domain] = $cookie;
 
             if ($timeout > 0) {
                 $now = time();
@@ -209,7 +209,7 @@ class Response
                 $timeout = 1;
             }
 
-            setrawcookie($key, rawurlencode($value), $timeout, $path, $domain, $secure, $httponly);
+            setrawcookie($key, rawurlencode($value), $timeout, $path, $domain ?? '');
         }
     }
 
@@ -220,7 +220,7 @@ class Response
     public function respond()
     {
         if ($this->sandbox) {
-            throw new Terminal('sandbox mode');
+            throw new Terminal();
         }
 
         if ($this->enableAutoSendHeaders) {
@@ -275,8 +275,6 @@ class Response
      * @param integer $timeout 过期时间,默认为0,表示随会话时间结束
      * @param string $path 路径信息
      * @param string|null $domain 域名信息
-     * @param bool $secure 是否仅可通过安全的 HTTPS 连接传给客户端
-     * @param bool $httponly 是否仅可通过 HTTP 协议访问
      * @return $this
      */
     public function setCookie(
@@ -284,12 +282,10 @@ class Response
         $value,
         int $timeout = 0,
         string $path = '/',
-        string $domain = '',
-        bool $secure = false,
-        bool $httponly = false
+        string $domain = null
     ): Response {
         if (!$this->sandbox) {
-            $this->cookies[] = [$key, $value, $timeout, $path, $domain, $secure, $httponly];
+            $this->cookies[] = [$key, $value, $timeout, $path, $domain];
         }
 
         return $this;
@@ -301,7 +297,7 @@ class Response
      * @param string $contentType 文档类型
      * @return $this
      */
-    public function setContentType(string $contentType): Response
+    public function setContentType(string $contentType = 'text/html'): Response
     {
         if (!$this->sandbox) {
             $this->contentType = $contentType;

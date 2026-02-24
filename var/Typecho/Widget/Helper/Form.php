@@ -3,7 +3,6 @@
 namespace Typecho\Widget\Helper;
 
 use Typecho\Cookie;
-use Typecho\Request;
 use Typecho\Validate;
 use Typecho\Widget\Helper\Form\Element;
 
@@ -42,7 +41,7 @@ class Form extends Layout
      * @access private
      * @var array
      */
-    private array $inputs = [];
+    private $inputs = [];
 
     /**
      * 构造函数,设置基本属性
@@ -131,7 +130,13 @@ class Form extends Layout
      */
     public function getAllRequest(): array
     {
-        return $this->getParams(array_keys($this->inputs));
+        $result = [];
+        $source = (self::POST_METHOD == $this->getAttribute('method')) ? $_POST : $_GET;
+
+        foreach ($this->inputs as $name => $input) {
+            $result[$name] = $source[$name] ?? null;
+        }
+        return $result;
     }
 
     /**
@@ -199,10 +204,10 @@ class Form extends Layout
     public function getParams(array $params): array
     {
         $result = [];
-        $request = Request::getInstance();
+        $source = (self::POST_METHOD == $this->getAttribute('method')) ? $_POST : $_GET;
 
         foreach ($params as $param) {
-            $result[$param] = $request->get($param, is_array($this->getInput($param)->value) ? [] : null);
+            $result[$param] = $source[$param] ?? null;
         }
 
         return $result;
