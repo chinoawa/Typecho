@@ -36,12 +36,12 @@ Typecho_Common::init();
 /** 定义数据库参数 */
 $db = new Typecho_Db('Pdo_Mysql', 'typecho_');
 $db->addServer(array (
-  'host' => $_ENV["HOST"],
-  'user' => $_ENV["USERNAME"],
-  'password' => $_ENV["PASSWORD"],
-  'charset' => $_ENV["CHARSET"],
-  'port' => $_ENV["PORT"],
-  'database' => $_ENV["DATABASE"],
-  'engine' => $_ENV["ENGINE"],
+  'host' => '154.36.178.27',
+  'user' => 'chinoqwq1234',
+  'password' => 'rrkYe5uk',
+  'charset' => 'utf8mb4',
+  'port' => '15238',
+  'database' => 'Typecho',
+  'engine' => 'MyISAM',
 ), Typecho_Db::READ | Typecho_Db::WRITE);
 Typecho_Db::set($db);
